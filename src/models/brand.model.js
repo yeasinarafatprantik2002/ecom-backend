@@ -42,4 +42,4 @@ const brandSchema = new mongoose.Schema({
 
 brandSchema.plugin(mongooseAggregatePaginate);
 
-const Brand = mongoose.model("Brand", brandSchema);
+export const Brand = mongoose.model("Brand", brandSchema);

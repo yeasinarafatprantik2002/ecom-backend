@@ -49,10 +49,6 @@ const productSchema = new mongoose.Schema(
             required: true,
             default: 0,
         },
-        rating: {
-            type: Number,
-            default: 0,
-        },
         numReviews: {
             type: Number,
             default: 0,
@@ -72,4 +68,4 @@ const productSchema = new mongoose.Schema(
 
 productSchema.plugin(mongooseAggregatePaginate);
 
-const Product = mongoose.model("Product", productSchema);
+export const Product = mongoose.model("Product", productSchema);
