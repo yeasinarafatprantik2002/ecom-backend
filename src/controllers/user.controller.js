@@ -249,6 +249,81 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, user, "User found"));
 });
 
+const upadteAccountDetails = asyncHandler(async (req, res) => {
+    const { addressLine1, addressLine2, phone, firstName, lastName } = req.body;
+
+    if (
+        [addressLine1, phone, firstName, lastName].some(
+            (field) => (field == field.trim()) === ""
+        )
+    ) {
+        throw new ApiError(400, "Missing required fields");
+    }
+
+    const fullName = `${firstName} ${lastName}`;
+    addressLine2 = req.body.addressLine2 || req.user.addressLine2;
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                addressLine1,
+                addressLine2,
+                phone,
+                firstName,
+                lastName,
+                fullName,
+            },
+        },
+        { new: true }
+    ).select("-password -refreshToken");
+
+    if (!user) {
+        throw new ApiError(500, "Error updating user");
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, user, "User updated successfully"));
+});
+
+const updateUserAvatar = asyncHandler(async (req, res) => {
+    const { oldAvatar } = req.user.avatar;
+
+    if (oldAvatar) {
+        await deleteFromCloudinary(oldAvatar, "image");
+    }
+
+    const avatarLocalPath = req.file?.path;
+
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "Avatar file is required");
+    }
+
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
+
+    if (!avatar.url) {
+        throw new ApiError(500, "Error uploading files");
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: { avatar: avatar.url },
+        },
+        { new: true }
+    ).select("-password -refreshToken");
+
+    if (!user) {
+        throw new ApiError(500, "Error updating user");
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, user, "User avatar updated successfully"));
+});
+
+
 export {
     registerUser,
     loginUser,
@@ -256,4 +331,6 @@ export {
     refreshAccessToken,
     changeCurrentUserPassword,
     getCurrentUser,
+    upadteAccountDetails,
+    updateUserAvatar,
 };
